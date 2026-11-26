@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+data/memory.db*
+data/prompt_history.txt
+exports/
+engine/scorer
+
+.env
+*.db
+*.db-journal
+*.db-wal
+__pycache__/
+engine/scorer
+prompt_history.txt
+.env.save

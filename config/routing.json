@@ -1,0 +1,92 @@
+{
+  "default_task": "general",
+  "providers": {
+    "anthropic": {
+      "base_url": "https://api.anthropic.com/v1/messages",
+      "env_key": "ANTHROPIC_API_KEY",
+      "api_version": "2023-06-01",
+      "optional_auth": false
+    },
+    "openrouter": {
+      "base_url": "https://openrouter.ai/api/v1/chat/completions",
+      "env_key": "OPENROUTER_API_KEY",
+      "optional_auth": false
+    },
+    "groq": {
+      "base_url": "https://api.groq.com/openai/v1/chat/completions",
+      "env_key": "GROQ_API_KEY",
+      "optional_auth": false
+    },
+    "together": {
+      "base_url": "https://api.together.xyz/v1/chat/completions",
+      "env_key": "TOGETHER_API_KEY",
+      "optional_auth": false
+    },
+    "fireworks": {
+      "base_url": "https://api.fireworks.ai/inference/v1/chat/completions",
+      "env_key": "FIREWORKS_API_KEY",
+      "optional_auth": false
+    },
+    "mistral": {
+      "base_url": "https://api.mistral.ai/v1/chat/completions",
+      "env_key": "MISTRAL_API_KEY",
+      "optional_auth": false
+    },
+    "deepseek": {
+      "base_url": "https://api.deepseek.com/chat/completions",
+      "env_key": "DEEPSEEK_API_KEY",
+      "optional_auth": false
+    },
+    "ollama": {
+      "base_url": "http://localhost:11434/v1/chat/completions",
+      "env_key": "OLLAMA_API_KEY",
+      "optional_auth": true
+    }
+  },
+  "tasks": {
+    "coding": [
+      {"provider": "groq", "model": "openai/gpt-oss-120b", "cooldown_sec": 60},
+      {"provider": "openrouter", "model": "openrouter/free", "cooldown_sec": 40},
+      {"provider": "mistral", "model": "codestral-latest", "cooldown_sec": 75},
+      {"provider": "deepseek", "model": "deepseek-chat", "cooldown_sec": 75},
+      {"provider": "groq", "model": "llama-3.3-70b-versatile", "cooldown_sec": 60},
+      {"provider": "gemini", "model": "gemini-2.5-flash", "cooldown_sec": 75},
+      {"provider": "ollama", "model": "qwen2.5-coder:7b", "cooldown_sec": 25}
+    ],
+    "debate": [
+      {"provider": "openrouter", "model": "openrouter/free", "cooldown_sec": 40},
+      {"provider": "groq", "model": "openai/gpt-oss-120b", "cooldown_sec": 60},
+      {"provider": "mistral", "model": "mistral-large-latest", "cooldown_sec": 75},
+      {"provider": "deepseek", "model": "deepseek-reasoner", "cooldown_sec": 75},
+      {"provider": "groq", "model": "llama-3.3-70b-versatile", "cooldown_sec": 60},
+      {"provider": "gemini", "model": "gemini-2.5-flash", "cooldown_sec": 75},
+      {"provider": "ollama", "model": "llama3.2", "cooldown_sec": 25}
+    ],
+    "analysis": [
+      {"provider": "openrouter", "model": "openrouter/free", "cooldown_sec": 40},
+      {"provider": "groq", "model": "openai/gpt-oss-120b", "cooldown_sec": 60},
+      {"provider": "mistral", "model": "mistral-large-latest", "cooldown_sec": 75},
+      {"provider": "deepseek", "model": "deepseek-chat", "cooldown_sec": 75},
+      {"provider": "gemini", "model": "gemini-2.5-flash", "cooldown_sec": 75},
+      {"provider": "groq", "model": "llama-3.3-70b-versatile", "cooldown_sec": 60},
+      {"provider": "ollama", "model": "llama3.2", "cooldown_sec": 25}
+    ],
+    "quant": [
+      {"provider": "groq", "model": "openai/gpt-oss-120b", "cooldown_sec": 60},
+      {"provider": "openrouter", "model": "openrouter/free", "cooldown_sec": 40},
+      {"provider": "deepseek", "model": "deepseek-reasoner", "cooldown_sec": 75},
+      {"provider": "mistral", "model": "mistral-large-latest", "cooldown_sec": 75},
+      {"provider": "gemini", "model": "gemini-2.5-flash", "cooldown_sec": 75},
+      {"provider": "ollama", "model": "qwen2.5:7b", "cooldown_sec": 25}
+    ],
+    "general": [
+      {"provider": "groq", "model": "openai/gpt-oss-20b", "cooldown_sec": 50},
+      {"provider": "openrouter", "model": "openrouter/free", "cooldown_sec": 40},
+      {"provider": "mistral", "model": "mistral-small-latest", "cooldown_sec": 75},
+      {"provider": "groq", "model": "llama-3.3-70b-versatile", "cooldown_sec": 60},
+      {"provider": "deepseek", "model": "deepseek-chat", "cooldown_sec": 75},
+      {"provider": "gemini", "model": "gemini-2.5-flash", "cooldown_sec": 75},
+      {"provider": "ollama", "model": "llama3.2", "cooldown_sec": 25}
+    ]
+  }
+}
