@@ -790,46 +790,46 @@ def _extract_visual_panels(reply_text: str, decision):
 
 
 def _mock_fn(p: str) -> str:
-            return (
-                f"**[MOCK/{current_mode}/{task_to_use}]** Prompt: `{p[:220]}`\n\n"
-                f"C++ scorer binary ready: `{SCORER_BIN.exists()}` | Memories loaded."
-            )
+    return (
+        f"**[MOCK/{current_mode}/{task_to_use}]** Prompt: `{p[:220]}`\n\n"
+        f"C++ scorer binary ready: `{SCORER_BIN.exists()}` | Memories loaded."
+    )
 
-        t0 = time.perf_counter()
-        effective_system_prompt, vis_decision = _build_visual_system_prompt(system_prompt, user_input)
-        with console.status(f"[bold bright_cyan]Dispatching via {task_to_use} chain...[/]", spinner="dots12"):
-            reply, route_used = router.route_generate(
-                task=task_to_use,
-                system_prompt=effective_system_prompt,
-                prompt=prompt_to_send,
-                mock_fallback_fn=_mock_fn,
-                force_mock=mock_enabled,
-                loop_wait_sec=loop_wait_sec,
-            )
-        last_latency_s = time.perf_counter() - t0
-        last_route = route_used
+t0 = time.perf_counter()
+effective_system_prompt, vis_decision = _build_visual_system_prompt(system_prompt, user_input)
+with console.status(f"[bold bright_cyan]Dispatching via {task_to_use} chain...[/]", spinner="dots12"):
+    reply, route_used = router.route_generate(
+        task=task_to_use,
+        system_prompt=effective_system_prompt,
+        prompt=prompt_to_send,
+        mock_fallback_fn=_mock_fn,
+        force_mock=mock_enabled,
+        loop_wait_sec=loop_wait_sec,
+    )
+last_latency_s = time.perf_counter() - t0
+last_route = route_used
 
-        formatted = clean_terminal_markdown(reply)
-        last_output_md = formatted
-        append_chat(conn, "user", task_to_use, "input", user_input)
-        append_chat(conn, "assistant", task_to_use, route_used, formatted)
+formatted = clean_terminal_markdown(reply)
+last_output_md = formatted
+append_chat(conn, "user", task_to_use, "input", user_input)
+append_chat(conn, "assistant", task_to_use, route_used, formatted)
 
-        border = "yellow" if "MOCK" in route_used else "bright_cyan"
-        due_now = len(get_due_reminders(conn))
-        console.print()
-        console.print(
-            Panel(
-                Markdown(formatted),
-                title=f"[bold]◈ {route_used} ◈[/]",
-                subtitle=f"[dim]task={task_to_use} · latency={last_latency_s:.2f}s · /export to save[/]",
-                border_style=border,
-                box=box.ROUNDED,
-                padding=(1, 2),
-            )
-        )
-        console.print(
-            build_hud_header(router, current_mode, current_task, loop_wait_sec, mock_enabled, last_route, last_latency_s, due_now)
-        )
+border = "yellow" if "MOCK" in route_used else "bright_cyan"
+due_now = len(get_due_reminders(conn))
+console.print()
+console.print(
+    Panel(
+        Markdown(formatted),
+        title=f"[bold]◈ {route_used} ◈[/]",
+        subtitle=f"[dim]task={task_to_use} · latency={last_latency_s:.2f}s · /export to save[/]",
+        border_style=border,
+        box=box.ROUNDED,
+        padding=(1, 2),
+    )
+)
+console.print(
+    build_hud_header(router, current_mode, current_task, loop_wait_sec, mock_enabled, last_route, last_latency_s, due_now)
+)
 
 
 if __name__ == "__main__":
