@@ -715,17 +715,92 @@ def main() -> None:
             f"User Memory Context:\n{memory_text}{history_block}"
         )
 
-        def _mock_fn(p: str) -> str:
+        VISUAL_RULES_PATH = BASE_DIR / "visual_rules.md"
+
+
+def _build_visual_system_prompt(base_sys: str, prompt_text: str):
+    try:
+        from visual_router import classify_visual_need
+        decision = classify_visual_need(prompt_text)
+    except Exception:
+        return base_sys, None
+    if not (decision.render_chart or decision.render_table):
+        return base_sys, decision
+    rules_txt = VISUAL_RULES_PATH.read_text(encoding="utf-8") if VISUAL_RULES_PATH.exists() else ""
+    extra = (
+        f"{rules_txt}\n"
+        "[AUTO-VISUAL OUTPUT HINT]\n"
+        "- Include a clean comparison table for multi-horizon or multi-item figures.\n"
+        "- When giving numeric series or allocations, you may also include a single line "
+        "`CHART_DATA: 1W=1.2, 1M=3.4, 1Y=12.5` or `PIE_DATA: Equity=60, Gold=25, Debt=15` "
+        "so KARLEXO renders a visual panel automatically."
+    )
+    merged = f"{base_sys}\n\n{extra}" if base_sys else extra
+    return merged, decision
+
+
+def _extract_visual_panels(reply_text: str, decision):
+    panels = []
+    if not decision or not decision.render_chart:
+        return panels
+    chart_m = re.search(r"^CHART_DATA:\s*(.+)$", reply_text, re.MULTILINE | re.IGNORECASE)
+    pie_m = re.search(r"^PIE_DATA:\s*(.+)$", reply_text, re.MULTILINE | re.IGNORECASE)
+
+    def _parse_pairs(raw: str):
+        labels, vals, slices = [], [], []
+        for chunk in re.split(r"[,|]", raw):
+            if "=" in chunk or ":" in chunk:
+                sep = "=" if "=" in chunk else ":"
+                k, v = chunk.split(sep, 1)
+                num_m = re.search(r"[-+]?\d+(?:\.\d+)?", v)
+                if num_m:
+                    lbl = k.strip()[:14]
+                    val = float(num_m.group(0))
+                    labels.append(lbl)
+                    vals.append(val)
+                    if val > 0:
+                        slices.append((lbl, val))
+        return labels, vals, slices
+
+    if pie_m:
+        _, _, slices = _parse_pairs(pie_m.group(1))
+        if len(slices) >= 2:
+            panels.append(("Pie Breakdown", render_pie_chart(slices)))
+    if chart_m:
+        labels, vals, _ = _parse_pairs(chart_m.group(1))
+        if len(vals) >= 2:
+            panels.append(("Chart", render_bar_chart(vals, labels)))
+    if not panels:
+        pairs = re.findall(
+            r"\b(1W|1M|3M|6M|1Y|3Y|5Y|10Y|YTD|Equity|Gold|Silver|Debt|Cash)\b[^\n\-\d+]*([-+]?\d+(?:\.\d+)?)\s*%",
+            reply_text,
+            re.IGNORECASE,
+        )
+        seen = set()
+        labels, vals = [], []
+        for k, v in pairs:
+            key = k.upper()
+            if key not in seen:
+                seen.add(key)
+                labels.append(key[:10])
+                vals.append(float(v))
+        if len(vals) >= 2:
+            panels.append(("Auto Horizon / Breakdown", render_bar_chart(vals, labels)))
+    return panels
+
+
+def _mock_fn(p: str) -> str:
             return (
                 f"**[MOCK/{current_mode}/{task_to_use}]** Prompt: `{p[:220]}`\n\n"
                 f"C++ scorer binary ready: `{SCORER_BIN.exists()}` | Memories loaded."
             )
 
         t0 = time.perf_counter()
+        effective_system_prompt, vis_decision = _build_visual_system_prompt(system_prompt, user_input)
         with console.status(f"[bold bright_cyan]Dispatching via {task_to_use} chain...[/]", spinner="dots12"):
             reply, route_used = router.route_generate(
                 task=task_to_use,
-                system_prompt=system_prompt,
+                system_prompt=effective_system_prompt,
                 prompt=prompt_to_send,
                 mock_fallback_fn=_mock_fn,
                 force_mock=mock_enabled,
